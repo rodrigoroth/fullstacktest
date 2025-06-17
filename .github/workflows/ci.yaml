@@ -1,0 +1,43 @@
+name: CI Pipeline
+
+on: 
+  pull_request:
+    branches:
+      - devel
+      - stage
+      - prod 
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps: 
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: ./codebase/rdicidr-0.1.0
+
+      - name: Run linter
+        run: npm run lint
+        working-directory: ./codebase/rdicidr-0.1.0
+
+      - name: Run formatter
+        run: npm run prettier -- --write
+        working-directory: ./codebase/rdicidr-0.1.0
+
+      - name: Run tests
+        env: 
+          CI: true
+        run: npm run test
+        working-directory: ./codebase/rdicidr-0.1.0
+
+      - name: Build project
+        run: npm run build
+        working-directory: ./codebase/rdicidr-0.1.0

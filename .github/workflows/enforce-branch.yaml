@@ -1,0 +1,38 @@
+name: Enforce Branch Rules
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  check-branch:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check PR source and target branches
+        run: |
+          echo "Source branch: ${{ github.head_ref }}"
+          echo "Target branch: ${{ github.base_ref }}"
+
+          SOURCE_BRANCH="${{ github.head_ref }}"
+          TARGET_BRANCH="${{ github.base_ref }}"
+
+          if [[ "$TARGET_BRANCH" == "stage" && "$SOURCE_BRANCH" != "devel" ]]; then
+            echo "Only PRs from 'devel' are allowed to merge into 'stage'."
+            exit 1
+          fi
+
+          if [[ "$TARGET_BRANCH" == "prod" && "$SOURCE_BRANCH" != "stage" ]]; then
+            echo "Only PRs from 'stage' are allowed to merge into 'prod'."
+            exit 1
+          fi
+
+          if [[ "TARGET_BRANCH" == "devel" ]]; then
+            if [[ ! "$SOURCE_BRANCH" =~ ^(feature|bugfix)/.+$ ]]; then
+              echo "Branches merging into 'devel' must start with 'feature/' or 'bugfix/'."
+              exit 1
+            fi
+          fi
+
+          echo "Branch rules check passed. PR is valid!"
+
